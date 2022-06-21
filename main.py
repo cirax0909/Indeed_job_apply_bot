@@ -1,11 +1,12 @@
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.keys import Keys
 import time
 from selenium.common.exceptions import NoSuchElementException
 
-# job_title = input("Please insert key word for job position: ")
-# location = input("Please insert location you want to find a job: ")
+job_title = input("Please insert key word for job position: ")
+location = input("Please insert location you want to find a job: ")
 email = "tichpham1@gmail.com"
 password = "6688thien!!tich"
 
@@ -15,7 +16,7 @@ url = 'https://ca.indeed.com/'
 driver.maximize_window()
 driver.get(url)
 
-#login
+# login
 driver.find_element(By.LINK_TEXT, "Sign in").click()
 driver.find_element(By.XPATH, '//*[@id="ifl-InputFormField-3"]').send_keys(email)
 driver.find_element(By.XPATH, '//*[@id="emailform"]/button').click()
@@ -24,6 +25,10 @@ driver.find_element(By.XPATH, '//*[@id="auth-page-google-password-fallback"]').c
 driver.find_element(By.XPATH, '//*[@id="ifl-InputFormField-106"]').send_keys(password)
 driver.find_element(By.XPATH, '//*[@id="loginform"]/button').click()
 
-
+#searching
+driver.find_element(By.XPATH, '//*[@id="text-input-what"]').send_keys(job_title)
+driver.find_element(By.XPATH, '//*[@id="text-input-where"]').send_keys(Keys.CONTROL + "a")
+driver.find_element(By.XPATH, '//*[@id="text-input-where"]').send_keys(location)
+driver.find_element(By.XPATH, '//*[@id="jobsearch"]/button').click()
 
 
