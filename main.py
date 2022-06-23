@@ -4,6 +4,9 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 import time
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import ElementNotInteractableException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 job_title = input("Please insert key word for job position: ")
 location = input("Please insert location you want to find a job: ")
@@ -18,17 +21,55 @@ driver.get(url)
 
 # login
 driver.find_element(By.LINK_TEXT, "Sign in").click()
+time.sleep(2)
 driver.find_element(By.XPATH, '//*[@id="ifl-InputFormField-3"]').send_keys(email)
+time.sleep(2)
 driver.find_element(By.XPATH, '//*[@id="emailform"]/button').click()
 time.sleep(2)
 driver.find_element(By.XPATH, '//*[@id="auth-page-google-password-fallback"]').click()
+time.sleep(2)
 driver.find_element(By.XPATH, '//*[@id="ifl-InputFormField-106"]').send_keys(password)
+time.sleep(2)
 driver.find_element(By.XPATH, '//*[@id="loginform"]/button').click()
 
-#searching
+# searching
 driver.find_element(By.XPATH, '//*[@id="text-input-what"]').send_keys(job_title)
 driver.find_element(By.XPATH, '//*[@id="text-input-where"]').send_keys(Keys.CONTROL + "a")
 driver.find_element(By.XPATH, '//*[@id="text-input-where"]').send_keys(location)
 driver.find_element(By.XPATH, '//*[@id="jobsearch"]/button').click()
 
 
+# Saving jobs
+def job_save(enough):
+    while enough <= 2:
+        job_listings = driver.find_elements(By.CSS_SELECTOR, '.resultWithShelf')
+        for job in job_listings:
+            driver.execute_script("arguments[0].scrollIntoView(true);", job)
+            time.sleep(2)
+            try:
+                wait = WebDriverWait(driver, 20)
+                wait.until(EC.element_to_be_clickable(job)).click()
+            except ElementNotInteractableException:
+                print(f'Cannot click number {job_listings.index(job)} job')
+
+            try:
+                wait = WebDriverWait(driver, 10)
+                job_save = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[name()='iframe' and @id='vjs-container-iframe']")))
+                job_save.click()
+            except ElementNotInteractableException:
+                print(f'Cannot save number {job_listings.index(job)} job')
+            print("job's saved")
+        try:
+            wait = WebDriverWait(driver, 10)
+            wait.until(EC.element_to_be_clickable((By.XPATH, f"//span[normalize-space()='{enough + 1}']"))).click()
+        except ElementNotInteractableException:
+            print("Cannot click the page number")
+        enough += 1
+
+        try:
+            driver.implicitly_wait(5)
+            driver.find_element(By.XPATH, '//*[@id="popover-x"]/button').click()
+        except NoSuchElementException or NoSuchElementException:
+            break
+
+job_save(1)
