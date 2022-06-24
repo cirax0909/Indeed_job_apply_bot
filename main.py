@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 import time
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.common.exceptions import ElementNotInteractableException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -49,27 +49,30 @@ def job_save(enough):
             try:
                 wait = WebDriverWait(driver, 20)
                 wait.until(EC.element_to_be_clickable(job)).click()
-            except ElementNotInteractableException:
+            except StaleElementReferenceException:
                 print(f'Cannot click number {job_listings.index(job)} job')
 
             try:
                 wait = WebDriverWait(driver, 10)
-                job_save = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[name()='iframe' and @id='vjs-container-iframe']")))
-                job_save.click()
+                wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[@id='vjs-container-iframe']")))
+                wait.until(EC.element_to_be_clickable((By.XPATH, "(//button[@class='icl-Button icl-Button--secondary icl"
+                                                                 "-Button--lg icl-Button--block css-u42zq4 e8ju0x51'])[1]"
+                                                                 ""))).click()
+                driver.switch_to.default_content()
             except ElementNotInteractableException:
                 print(f'Cannot save number {job_listings.index(job)} job')
-            print("job's saved")
         try:
-            wait = WebDriverWait(driver, 10)
-            wait.until(EC.element_to_be_clickable((By.XPATH, f"//span[normalize-space()='{enough + 1}']"))).click()
-        except ElementNotInteractableException:
+            driver.find_element(By.XPATH, f"//span[normalize-space()='{enough + 1}']").click()
+        except NoSuchElementException:
             print("Cannot click the page number")
         enough += 1
 
         try:
             driver.implicitly_wait(5)
             driver.find_element(By.XPATH, '//*[@id="popover-x"]/button').click()
-        except NoSuchElementException or NoSuchElementException:
-            break
+        except ElementNotInteractableException:
+            print("No popup")
+        finally:
+            pass
 
 job_save(1)
